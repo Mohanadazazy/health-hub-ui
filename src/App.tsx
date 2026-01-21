@@ -12,6 +12,7 @@ import ProductDetails from "./pages/ProductDetails";
 import Profile from "./pages/Profile";
 import SellMedicine from "./pages/SellMedicine";
 import Prescription from "./pages/Prescription";
+import Cart from "./pages/Cart";
 import NotFound from "./pages/NotFound";
 import Navbar from "./components/layout/Navbar";
 import Footer from "./components/layout/Footer";
@@ -45,6 +46,7 @@ const App = () => (
           <Route path="/profile" element={<Profile />} />
           <Route path="/sell" element={<SellMedicine />} />
           <Route path="/prescription" element={<Prescription />} />
+          <Route path="/cart" element={<Cart />} />
           
           <Route path="*" element={<NotFound />} />
         </Routes>
