@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useSearchParams, useNavigate } from "react-router-dom";
 import {
   MapPin,
   Star,
@@ -9,6 +9,7 @@ import {
   ChevronRight,
   Heart,
   Share2,
+  ArrowLeft,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -16,15 +17,15 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import ProductCard from "@/components/cards/ProductCard";
+import CategoryCard from "@/components/cards/CategoryCard";
 
 const categories = [
-  "All Products",
-  "Pain Relief",
-  "Cold & Flu",
-  "Vitamins",
-  "First Aid",
-  "Skin Care",
-  "Digestive",
+  { id: "pain-relief", name: "Pain Relief", productCount: 12 },
+  { id: "cold-flu", name: "Cold & Flu", productCount: 8 },
+  { id: "vitamins", name: "Vitamins", productCount: 15 },
+  { id: "first-aid", name: "First Aid", productCount: 6 },
+  { id: "skin-care", name: "Skin Care", productCount: 10 },
+  { id: "digestive", name: "Digestive", productCount: 7 },
 ];
 
 const mockProducts = [
@@ -99,12 +100,26 @@ const mockProducts = [
 
 const PharmacyDetails = () => {
   const { id } = useParams();
-  const [selectedCategory, setSelectedCategory] = useState("All Products");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
+  
+  const selectedCategory = searchParams.get("category");
 
-  const filteredProducts =
-    selectedCategory === "All Products"
-      ? mockProducts
-      : mockProducts.filter((p) => p.category === selectedCategory);
+  const filteredProducts = selectedCategory
+    ? mockProducts.filter((p) => p.category === selectedCategory)
+    : [];
+
+  const handleCategoryClick = (categoryName: string) => {
+    setSearchParams({ category: categoryName });
+  };
+
+  const handleBackToCategories = () => {
+    setSearchParams({});
+  };
+
+  const handleBackToPharmacies = () => {
+    navigate("/pharmacies");
+  };
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -118,6 +133,17 @@ const PharmacyDetails = () => {
 
         <div className="container mx-auto px-4 -mt-16 relative z-10">
           <div className="bg-card rounded-2xl shadow-elevated border border-border p-6">
+            {/* Back Button */}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleBackToPharmacies}
+              className="mb-4 -ml-2"
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back to Pharmacies
+            </Button>
+
             <div className="flex flex-col md:flex-row gap-6">
               {/* Pharmacy Logo */}
               <div className="shrink-0">
@@ -175,7 +201,7 @@ const PharmacyDetails = () => {
                   </div>
                 </div>
 
-                {/* Categories */}
+                {/* Pharmacy Tags */}
                 <div className="flex flex-wrap gap-2">
                   {["General", "Prescription", "Wellness", "24/7 Delivery"].map(
                     (cat) => (
@@ -190,7 +216,7 @@ const PharmacyDetails = () => {
           </div>
         </div>
 
-        {/* Products Section */}
+        {/* Content Section */}
         <div className="container mx-auto px-4 py-8">
           <Tabs defaultValue="products" className="space-y-6">
             <TabsList className="bg-muted/50 p-1">
@@ -200,39 +226,82 @@ const PharmacyDetails = () => {
             </TabsList>
 
             <TabsContent value="products" className="space-y-6">
-              {/* Category Filter */}
-              <div className="flex gap-2 overflow-x-auto pb-2 -mx-4 px-4 md:mx-0 md:px-0 md:flex-wrap">
-                {categories.map((category) => (
-                  <Button
-                    key={category}
-                    variant={selectedCategory === category ? "default" : "outline"}
-                    size="sm"
-                    className="shrink-0"
-                    onClick={() => setSelectedCategory(category)}
-                  >
-                    {category}
-                  </Button>
-                ))}
-              </div>
+              {!selectedCategory ? (
+                <>
+                  {/* Categories View */}
+                  <div>
+                    <h2 className="text-xl font-semibold text-foreground mb-4">
+                      Browse Categories
+                    </h2>
+                    <p className="text-muted-foreground mb-6">
+                      Select a category to view available medicines and products
+                    </p>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
+                    {categories.map((category) => (
+                      <CategoryCard
+                        key={category.id}
+                        {...category}
+                        onClick={() => handleCategoryClick(category.name)}
+                      />
+                    ))}
+                  </div>
+                </>
+              ) : (
+                <>
+                  {/* Products View */}
+                  <div className="flex items-center gap-4 mb-4">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleBackToCategories}
+                      className="-ml-2"
+                    >
+                      <ArrowLeft className="h-4 w-4 mr-2" />
+                      Back to Categories
+                    </Button>
+                  </div>
 
-              {/* Products Grid */}
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
-                {filteredProducts.map((product) => (
-                  <ProductCard
-                    key={product.id}
-                    {...product}
-                    pharmacyName="HealthFirst Pharmacy"
-                  />
-                ))}
-              </div>
+                  <div>
+                    <h2 className="text-xl font-semibold text-foreground mb-2">
+                      {selectedCategory}
+                    </h2>
+                    <p className="text-muted-foreground mb-6">
+                      {filteredProducts.length} products available
+                    </p>
+                  </div>
 
-              {/* Load More */}
-              <div className="text-center">
-                <Button variant="outline" size="lg">
-                  Load More Products
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
-              </div>
+                  {/* Products Grid */}
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+                    {filteredProducts.map((product) => (
+                      <ProductCard
+                        key={product.id}
+                        {...product}
+                        pharmacyName="HealthFirst Pharmacy"
+                      />
+                    ))}
+                  </div>
+
+                  {filteredProducts.length === 0 && (
+                    <div className="text-center py-12">
+                      <p className="text-muted-foreground">
+                        No products found in this category.
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Load More */}
+                  {filteredProducts.length > 0 && (
+                    <div className="text-center">
+                      <Button variant="outline" size="lg">
+                        Load More Products
+                        <ChevronRight className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  )}
+                </>
+              )}
             </TabsContent>
 
             <TabsContent value="info" className="space-y-6">
