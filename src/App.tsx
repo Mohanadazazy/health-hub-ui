@@ -7,6 +7,7 @@ import Landing from "./pages/Landing";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Search from "./pages/Search";
+import Pharmacies from "./pages/Pharmacies";
 import PharmacyDetails from "./pages/PharmacyDetails";
 import ProductDetails from "./pages/ProductDetails";
 import Profile from "./pages/Profile";
@@ -41,6 +42,7 @@ const App = () => (
           
           {/* Other pages */}
           <Route path="/search" element={<Search />} />
+          <Route path="/pharmacies" element={<Pharmacies />} />
           <Route path="/pharmacy/:id" element={<PharmacyDetails />} />
           <Route path="/product/:id" element={<ProductDetails />} />
           <Route path="/profile" element={<Profile />} />
