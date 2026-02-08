@@ -1,13 +1,15 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Menu, X, Search, ShoppingCart, User, Pill } from "lucide-react";
+import { Menu, X, Search, ShoppingCart, User, Pill, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useAuth } from "@/hooks/useAuth";
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const location = useLocation();
   const isLanding = location.pathname === "/";
+  const { user, signOut } = useAuth();
 
   const navLinks = [
     { href: "/search", label: "Find Medicines" },
@@ -68,24 +70,29 @@ const Navbar = () => {
                 </span>
               </Button>
             </Link>
-            
-            <Link to="/profile" className="hidden sm:block">
-              <Button variant="ghost" size="icon">
-                <User className="h-5 w-5" />
-              </Button>
-            </Link>
 
-            <Link to="/login" className="hidden sm:block">
-              <Button variant="outline" size="sm">
-                Login
-              </Button>
-            </Link>
-
-            <Link to="/register" className="hidden sm:block">
-              <Button size="sm">
-                Sign Up
-              </Button>
-            </Link>
+            {user ? (
+              <>
+                <Link to="/profile" className="hidden sm:block">
+                  <Button variant="ghost" size="icon">
+                    <User className="h-5 w-5" />
+                  </Button>
+                </Link>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="hidden sm:flex"
+                  onClick={signOut}
+                >
+                  <LogOut className="h-4 w-4 mr-1" />
+                  Sign Out
+                </Button>
+              </>
+            ) : (
+              <Link to="/auth" className="hidden sm:block">
+                <Button size="sm">Sign In</Button>
+              </Link>
+            )}
 
             {/* Mobile Menu Toggle */}
             <Button
@@ -102,7 +109,6 @@ const Navbar = () => {
         {/* Mobile Menu */}
         {isMenuOpen && (
           <div className="lg:hidden py-4 border-t border-border animate-fade-in">
-            {/* Mobile Search */}
             {!isLanding && (
               <div className="relative mb-4">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -128,16 +134,20 @@ const Navbar = () => {
               ))}
               
               <div className="flex gap-2 mt-4 pt-4 border-t border-border">
-                <Link to="/login" className="flex-1" onClick={() => setIsMenuOpen(false)}>
-                  <Button variant="outline" className="w-full">
-                    Login
-                  </Button>
-                </Link>
-                <Link to="/register" className="flex-1" onClick={() => setIsMenuOpen(false)}>
-                  <Button className="w-full">
-                    Sign Up
-                  </Button>
-                </Link>
+                {user ? (
+                  <>
+                    <Link to="/profile" className="flex-1" onClick={() => setIsMenuOpen(false)}>
+                      <Button variant="outline" className="w-full">Profile</Button>
+                    </Link>
+                    <Button className="flex-1" onClick={() => { signOut(); setIsMenuOpen(false); }}>
+                      Sign Out
+                    </Button>
+                  </>
+                ) : (
+                  <Link to="/auth" className="flex-1" onClick={() => setIsMenuOpen(false)}>
+                    <Button className="w-full">Sign In</Button>
+                  </Link>
+                )}
               </div>
             </div>
           </div>
