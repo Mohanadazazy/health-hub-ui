@@ -10,6 +10,13 @@ L.Icon.Default.mergeOptions({
   shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png",
 });
 
+const userIcon = L.divIcon({
+  html: `<div style="width:18px;height:18px;background:#3b82f6;border:3px solid #fff;border-radius:50%;box-shadow:0 0 8px rgba(59,130,246,0.5);"></div>`,
+  className: "",
+  iconSize: [18, 18],
+  iconAnchor: [9, 9],
+});
+
 interface Pharmacy {
   id: string;
   name: string;
@@ -27,9 +34,10 @@ interface Pharmacy {
 interface PharmacyMapProps {
   pharmacies: Pharmacy[];
   center?: [number, number];
+  userLocation?: [number, number];
 }
 
-const PharmacyMap = ({ pharmacies, center = [40.7128, -74.006] }: PharmacyMapProps) => {
+const PharmacyMap = ({ pharmacies, center = [40.7128, -74.006], userLocation }: PharmacyMapProps) => {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
 
@@ -49,6 +57,13 @@ const PharmacyMap = ({ pharmacies, center = [40.7128, -74.006] }: PharmacyMapPro
     };
   }, []);
 
+  // Pan to user location when it changes
+  useEffect(() => {
+    const map = mapInstanceRef.current;
+    if (!map || !userLocation) return;
+    map.setView(userLocation, 14);
+  }, [userLocation]);
+
   useEffect(() => {
     const map = mapInstanceRef.current;
     if (!map) return;
@@ -59,6 +74,13 @@ const PharmacyMap = ({ pharmacies, center = [40.7128, -74.006] }: PharmacyMapPro
         map.removeLayer(layer);
       }
     });
+
+    // Add user location marker
+    if (userLocation) {
+      L.marker(userLocation, { icon: userIcon })
+        .addTo(map)
+        .bindPopup('<div style="font-family:system-ui;font-weight:600;font-size:14px;">📍 You are here</div>');
+    }
 
     pharmacies.forEach((pharmacy) => {
       const marker = L.marker([pharmacy.lat, pharmacy.lng]).addTo(map);
@@ -75,7 +97,7 @@ const PharmacyMap = ({ pharmacies, center = [40.7128, -74.006] }: PharmacyMapPro
         </div>
       `);
     });
-  }, [pharmacies]);
+  }, [pharmacies, userLocation]);
 
   return (
     <div className="rounded-2xl overflow-hidden border border-border shadow-card h-[400px]">

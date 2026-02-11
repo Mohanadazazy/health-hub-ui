@@ -148,18 +148,34 @@ const Pharmacies = () => {
   const [showLocationDialog, setShowLocationDialog] = useState(true);
   const [locationLoading, setLocationLoading] = useState(false);
   const [userLocation, setUserLocation] = useState<string | null>(null);
+  const [userCoords, setUserCoords] = useState<[number, number] | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState("distance");
   const [filterOpen, setFilterOpen] = useState<"all" | "open" | "closed">("all");
 
   const handleGetLocation = () => {
     setLocationLoading(true);
-    // Simulate geolocation
-    setTimeout(() => {
+    if ("geolocation" in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const { latitude, longitude } = position.coords;
+          setUserCoords([latitude, longitude]);
+          setUserLocation(`${latitude.toFixed(4)}, ${longitude.toFixed(4)}`);
+          setLocationLoading(false);
+          setShowLocationDialog(false);
+        },
+        () => {
+          // Fallback on error
+          setUserLocation("Downtown, City Center");
+          setLocationLoading(false);
+          setShowLocationDialog(false);
+        }
+      );
+    } else {
       setUserLocation("Downtown, City Center");
       setLocationLoading(false);
       setShowLocationDialog(false);
-    }, 1500);
+    }
   };
 
   const handleSkipLocation = () => {
@@ -199,7 +215,7 @@ const Pharmacies = () => {
 
       {/* Location Permission Dialog */}
       <Dialog open={showLocationDialog} onOpenChange={setShowLocationDialog}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md z-[9999]">
           <DialogHeader>
             <div className="mx-auto w-16 h-16 rounded-full bg-primary-light flex items-center justify-center mb-4">
               <MapPin className="h-8 w-8 text-primary" />
@@ -320,7 +336,11 @@ const Pharmacies = () => {
 
           {/* Map */}
           <div className="mb-8">
-            <PharmacyMap pharmacies={filteredPharmacies} />
+            <PharmacyMap
+              pharmacies={filteredPharmacies}
+              center={userCoords || undefined}
+              userLocation={userCoords || undefined}
+            />
           </div>
 
           {/* Results Count */}
