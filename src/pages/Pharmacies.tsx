@@ -30,6 +30,7 @@ import {
 } from "@/components/ui/select";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
+import PharmacyMap from "@/components/pharmacies/PharmacyMap";
 
 interface Pharmacy {
   id: string;
@@ -44,6 +45,8 @@ interface Pharmacy {
   categories: number;
   deliveryTime: string;
   isFeatured?: boolean;
+  lat: number;
+  lng: number;
 }
 
 const pharmacies: Pharmacy[] = [
@@ -60,6 +63,8 @@ const pharmacies: Pharmacy[] = [
     categories: 12,
     deliveryTime: "15-20 min",
     isFeatured: true,
+    lat: 40.7128,
+    lng: -74.006,
   },
   {
     id: "2",
@@ -73,6 +78,8 @@ const pharmacies: Pharmacy[] = [
     openUntil: "9:00 PM",
     categories: 10,
     deliveryTime: "20-30 min",
+    lat: 40.7180,
+    lng: -73.998,
   },
   {
     id: "3",
@@ -86,6 +93,8 @@ const pharmacies: Pharmacy[] = [
     openUntil: "8:00 PM",
     categories: 8,
     deliveryTime: "25-35 min",
+    lat: 40.7230,
+    lng: -73.990,
   },
   {
     id: "4",
@@ -100,6 +109,8 @@ const pharmacies: Pharmacy[] = [
     categories: 15,
     deliveryTime: "30-40 min",
     isFeatured: true,
+    lat: 40.7080,
+    lng: -74.012,
   },
   {
     id: "5",
@@ -113,6 +124,8 @@ const pharmacies: Pharmacy[] = [
     openUntil: "11:00 PM",
     categories: 9,
     deliveryTime: "35-45 min",
+    lat: 40.7150,
+    lng: -74.015,
   },
   {
     id: "6",
@@ -126,6 +139,8 @@ const pharmacies: Pharmacy[] = [
     openUntil: "7:00 PM",
     categories: 7,
     deliveryTime: "40-50 min",
+    lat: 40.7050,
+    lng: -74.020,
   },
 ];
 
@@ -301,6 +316,11 @@ const Pharmacies = () => {
                 </SelectContent>
               </Select>
             </div>
+          </div>
+
+          {/* Map */}
+          <div className="mb-8">
+            <PharmacyMap pharmacies={filteredPharmacies} />
           </div>
 
           {/* Results Count */}
