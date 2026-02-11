@@ -1,10 +1,6 @@
-import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import { useEffect, useRef } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { Star, Clock, MapPin } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { Link } from "react-router-dom";
-import { Button } from "@/components/ui/button";
 
 // Fix default marker icon issue with bundlers
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -34,46 +30,56 @@ interface PharmacyMapProps {
 }
 
 const PharmacyMap = ({ pharmacies, center = [40.7128, -74.006] }: PharmacyMapProps) => {
+  const mapRef = useRef<HTMLDivElement>(null);
+  const mapInstanceRef = useRef<L.Map | null>(null);
+
+  useEffect(() => {
+    if (!mapRef.current || mapInstanceRef.current) return;
+
+    const map = L.map(mapRef.current).setView(center, 13);
+    mapInstanceRef.current = map;
+
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+    }).addTo(map);
+
+    return () => {
+      map.remove();
+      mapInstanceRef.current = null;
+    };
+  }, []);
+
+  useEffect(() => {
+    const map = mapInstanceRef.current;
+    if (!map) return;
+
+    // Clear existing markers
+    map.eachLayer((layer) => {
+      if (layer instanceof L.Marker) {
+        map.removeLayer(layer);
+      }
+    });
+
+    pharmacies.forEach((pharmacy) => {
+      const marker = L.marker([pharmacy.lat, pharmacy.lng]).addTo(map);
+      const statusColor = pharmacy.isOpen ? "#16a34a" : "#9ca3af";
+      const statusText = pharmacy.isOpen ? `Open until ${pharmacy.openUntil}` : pharmacy.openUntil;
+
+      marker.bindPopup(`
+        <div style="min-width:200px;font-family:system-ui,sans-serif;">
+          <h3 style="font-weight:700;font-size:15px;margin:0 0 6px;">${pharmacy.name}</h3>
+          <p style="font-size:13px;color:#6b7280;margin:0 0 4px;">📍 ${pharmacy.address}</p>
+          <p style="font-size:13px;margin:0 0 4px;">⭐ ${pharmacy.rating} (${pharmacy.reviews} reviews)</p>
+          <p style="font-size:13px;color:${statusColor};margin:0 0 8px;">🕐 ${statusText}</p>
+          <a href="/pharmacy/${pharmacy.id}" style="display:block;text-align:center;padding:6px 12px;background:hsl(174,62%,40%);color:#fff;border-radius:6px;text-decoration:none;font-size:13px;font-weight:600;">View Pharmacy</a>
+        </div>
+      `);
+    });
+  }, [pharmacies]);
+
   return (
     <div className="rounded-2xl overflow-hidden border border-border shadow-card h-[400px]">
-      <MapContainer
-        center={center}
-        zoom={13}
-        className="h-full w-full z-0"
-        scrollWheelZoom={true}
-      >
-        <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        />
-        {pharmacies.map((pharmacy) => (
-          <Marker key={pharmacy.id} position={[pharmacy.lat, pharmacy.lng]}>
-            <Popup>
-              <div className="min-w-[200px] space-y-2 p-1">
-                <h3 className="font-bold text-base">{pharmacy.name}</h3>
-                <p className="text-sm text-gray-600 flex items-center gap-1">
-                  <MapPin className="h-3 w-3" />
-                  {pharmacy.address}
-                </p>
-                <div className="flex items-center gap-2 text-sm">
-                  <Star className="h-3.5 w-3.5 fill-yellow-400 text-yellow-400" />
-                  <span className="font-semibold">{pharmacy.rating}</span>
-                  <span className="text-gray-500">({pharmacy.reviews})</span>
-                </div>
-                <div className="flex items-center gap-1 text-sm">
-                  <Clock className="h-3.5 w-3.5" />
-                  <span className={pharmacy.isOpen ? "text-green-600" : "text-gray-500"}>
-                    {pharmacy.isOpen ? `Open until ${pharmacy.openUntil}` : pharmacy.openUntil}
-                  </span>
-                </div>
-                <Link to={`/pharmacy/${pharmacy.id}`}>
-                  <Button size="sm" className="w-full mt-1">View Pharmacy</Button>
-                </Link>
-              </div>
-            </Popup>
-          </Marker>
-        ))}
-      </MapContainer>
+      <div ref={mapRef} className="h-full w-full" />
     </div>
   );
 };
