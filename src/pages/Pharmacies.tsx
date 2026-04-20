@@ -31,6 +31,10 @@ import {
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import PharmacyMap from "@/components/pharmacies/PharmacyMap";
+import PaginationControls from "@/components/common/PaginationControls";
+import PharmacyCardSkeleton from "@/components/cards/PharmacyCardSkeleton";
+
+const ITEMS_PER_PAGE = 6;
 
 interface Pharmacy {
   id: string;
@@ -152,6 +156,19 @@ const Pharmacies = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState("distance");
   const [filterOpen, setFilterOpen] = useState<"all" | "open" | "closed">("all");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [loading, setLoading] = useState(true);
+
+  // Simulate initial loading
+  useEffect(() => {
+    const timer = setTimeout(() => setLoading(false), 700);
+    return () => clearTimeout(timer);
+  }, []);
+
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, sortBy, filterOpen]);
 
   const handleGetLocation = () => {
     setLocationLoading(true);
@@ -349,100 +366,118 @@ const Pharmacies = () => {
           </p>
 
           {/* Pharmacy Grid */}
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredPharmacies.map((pharmacy) => (
-              <Link
-                key={pharmacy.id}
-                to={`/pharmacy/${pharmacy.id}`}
-                className="group bg-card rounded-2xl border border-border overflow-hidden hover:shadow-card transition-all duration-300 hover:-translate-y-1"
-              >
-                {/* Image */}
-                <div className="relative h-48 overflow-hidden">
-                  <img
-                    src={pharmacy.image}
-                    alt={pharmacy.name}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                  />
-                  {pharmacy.isFeatured && (
-                    <Badge className="absolute top-3 left-3 bg-accent text-accent-foreground">
-                      Featured
-                    </Badge>
-                  )}
-                  <div className="absolute top-3 right-3 bg-card/90 backdrop-blur-sm rounded-full px-3 py-1 flex items-center gap-1">
-                    <MapPin className="h-3 w-3 text-primary" />
-                    <span className="text-sm font-medium">{pharmacy.distance}</span>
-                  </div>
-                  {!pharmacy.isOpen && (
-                    <div className="absolute inset-0 bg-background/60 flex items-center justify-center">
-                      <Badge variant="secondary" className="text-sm">
-                        Currently Closed
-                      </Badge>
-                    </div>
-                  )}
-                </div>
-
-                {/* Content */}
-                <div className="p-5">
-                  <div className="flex items-start justify-between gap-2 mb-2">
-                    <h3 className="font-bold text-lg text-foreground group-hover:text-primary transition-colors line-clamp-1">
-                      {pharmacy.name}
-                    </h3>
-                    <div className="flex items-center gap-1 shrink-0">
-                      <Star className="h-4 w-4 fill-warning text-warning" />
-                      <span className="font-semibold text-foreground">{pharmacy.rating}</span>
-                      <span className="text-muted-foreground text-sm">({pharmacy.reviews})</span>
-                    </div>
-                  </div>
-
-                  <p className="text-muted-foreground text-sm mb-4 line-clamp-1">
-                    {pharmacy.address}
-                  </p>
-
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-4 text-sm">
-                      <span className={`flex items-center gap-1 ${pharmacy.isOpen ? "text-success" : "text-muted-foreground"}`}>
-                        <Clock className="h-4 w-4" />
-                        {pharmacy.isOpen ? `Until ${pharmacy.openUntil}` : pharmacy.openUntil}
-                      </span>
-                    </div>
-                    <Badge variant="secondary" className="text-xs">
-                      {pharmacy.categories} categories
-                    </Badge>
-                  </div>
-
-                  <div className="mt-4 pt-4 border-t border-border flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">
-                      Delivery: <span className="text-foreground font-medium">{pharmacy.deliveryTime}</span>
-                    </span>
-                    <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all" />
-                  </div>
-                </div>
-              </Link>
-            ))}
-          </div>
-
-          {/* Empty State */}
-          {filteredPharmacies.length === 0 && (
-            <div className="text-center py-16">
-              <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-muted flex items-center justify-center">
-                <Search className="h-10 w-10 text-muted-foreground" />
-              </div>
-              <h3 className="text-xl font-semibold text-foreground mb-2">
-                No pharmacies found
-              </h3>
-              <p className="text-muted-foreground mb-6">
-                Try adjusting your search or filters
-              </p>
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setSearchQuery("");
-                  setFilterOpen("all");
-                }}
-              >
-                Clear Filters
-              </Button>
+          {loading ? (
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {Array.from({ length: ITEMS_PER_PAGE }).map((_, i) => (
+                <PharmacyCardSkeleton key={i} />
+              ))}
             </div>
+          ) : (
+            <>
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {filteredPharmacies
+                  .slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE)
+                  .map((pharmacy) => (
+                    <Link
+                      key={pharmacy.id}
+                      to={`/pharmacy/${pharmacy.id}`}
+                      className="group bg-card rounded-2xl border border-border overflow-hidden hover:shadow-card transition-all duration-300 hover:-translate-y-1"
+                    >
+                      {/* Image */}
+                      <div className="relative h-48 overflow-hidden">
+                        <img
+                          src={pharmacy.image}
+                          alt={pharmacy.name}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        />
+                        {pharmacy.isFeatured && (
+                          <Badge className="absolute top-3 left-3 bg-accent text-accent-foreground">
+                            Featured
+                          </Badge>
+                        )}
+                        <div className="absolute top-3 right-3 bg-card/90 backdrop-blur-sm rounded-full px-3 py-1 flex items-center gap-1">
+                          <MapPin className="h-3 w-3 text-primary" />
+                          <span className="text-sm font-medium">{pharmacy.distance}</span>
+                        </div>
+                        {!pharmacy.isOpen && (
+                          <div className="absolute inset-0 bg-background/60 flex items-center justify-center">
+                            <Badge variant="secondary" className="text-sm">
+                              Currently Closed
+                            </Badge>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Content */}
+                      <div className="p-5">
+                        <div className="flex items-start justify-between gap-2 mb-2">
+                          <h3 className="font-bold text-lg text-foreground group-hover:text-primary transition-colors line-clamp-1">
+                            {pharmacy.name}
+                          </h3>
+                          <div className="flex items-center gap-1 shrink-0">
+                            <Star className="h-4 w-4 fill-warning text-warning" />
+                            <span className="font-semibold text-foreground">{pharmacy.rating}</span>
+                            <span className="text-muted-foreground text-sm">({pharmacy.reviews})</span>
+                          </div>
+                        </div>
+
+                        <p className="text-muted-foreground text-sm mb-4 line-clamp-1">
+                          {pharmacy.address}
+                        </p>
+
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-4 text-sm">
+                            <span className={`flex items-center gap-1 ${pharmacy.isOpen ? "text-success" : "text-muted-foreground"}`}>
+                              <Clock className="h-4 w-4" />
+                              {pharmacy.isOpen ? `Until ${pharmacy.openUntil}` : pharmacy.openUntil}
+                            </span>
+                          </div>
+                          <Badge variant="secondary" className="text-xs">
+                            {pharmacy.categories} categories
+                          </Badge>
+                        </div>
+
+                        <div className="mt-4 pt-4 border-t border-border flex items-center justify-between">
+                          <span className="text-sm text-muted-foreground">
+                            Delivery: <span className="text-foreground font-medium">{pharmacy.deliveryTime}</span>
+                          </span>
+                          <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all" />
+                        </div>
+                      </div>
+                    </Link>
+                  ))}
+              </div>
+
+              <PaginationControls
+                currentPage={currentPage}
+                totalPages={Math.ceil(filteredPharmacies.length / ITEMS_PER_PAGE)}
+                onPageChange={setCurrentPage}
+              />
+
+              {/* Empty State */}
+              {filteredPharmacies.length === 0 && (
+                <div className="text-center py-16">
+                  <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-muted flex items-center justify-center">
+                    <Search className="h-10 w-10 text-muted-foreground" />
+                  </div>
+                  <h3 className="text-xl font-semibold text-foreground mb-2">
+                    No pharmacies found
+                  </h3>
+                  <p className="text-muted-foreground mb-6">
+                    Try adjusting your search or filters
+                  </p>
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setSearchQuery("");
+                      setFilterOpen("all");
+                    }}
+                  >
+                    Clear Filters
+                  </Button>
+                </div>
+              )}
+            </>
           )}
         </div>
       </main>
