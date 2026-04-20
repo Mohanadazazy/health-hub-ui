@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Search as SearchIcon, SlidersHorizontal, Grid3X3, List, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,6 +14,10 @@ import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import ProductCard from "@/components/cards/ProductCard";
 import SearchFilters from "@/components/search/SearchFilters";
+import PaginationControls from "@/components/common/PaginationControls";
+import ProductCardSkeleton from "@/components/cards/ProductCardSkeleton";
+
+const ITEMS_PER_PAGE = 6;
 
 const mockMedicines = [
   {
@@ -106,11 +110,31 @@ const Search = () => {
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [showFilters, setShowFilters] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [loading, setLoading] = useState(true);
 
   const filteredMedicines = mockMedicines.filter((med) =>
     med.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     med.category.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  const totalPages = Math.ceil(filteredMedicines.length / ITEMS_PER_PAGE);
+  const paginatedMedicines = filteredMedicines.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  );
+
+  // Simulate loading
+  useEffect(() => {
+    setLoading(true);
+    const timer = setTimeout(() => setLoading(false), 600);
+    return () => clearTimeout(timer);
+  }, [searchQuery, currentPage]);
+
+  // Reset page on search
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery]);
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -228,31 +252,44 @@ const Search = () => {
               </div>
 
               {/* Results Grid */}
-              <div
-                className={
-                  viewMode === "grid"
-                    ? "grid sm:grid-cols-2 xl:grid-cols-3 gap-6"
-                    : "space-y-4"
-                }
-              >
-                {filteredMedicines.map((medicine) => (
-                  <ProductCard key={medicine.id} {...medicine} />
-                ))}
-              </div>
-
-              {filteredMedicines.length === 0 && (
-                <div className="text-center py-16">
-                  <p className="text-muted-foreground text-lg">No medicines found matching your search.</p>
+              {loading ? (
+                <div
+                  className={
+                    viewMode === "grid"
+                      ? "grid sm:grid-cols-2 xl:grid-cols-3 gap-6"
+                      : "space-y-4"
+                  }
+                >
+                  {Array.from({ length: ITEMS_PER_PAGE }).map((_, i) => (
+                    <ProductCardSkeleton key={i} />
+                  ))}
                 </div>
-              )}
+              ) : (
+                <>
+                  <div
+                    className={
+                      viewMode === "grid"
+                        ? "grid sm:grid-cols-2 xl:grid-cols-3 gap-6"
+                        : "space-y-4"
+                    }
+                  >
+                    {paginatedMedicines.map((medicine) => (
+                      <ProductCard key={medicine.id} {...medicine} />
+                    ))}
+                  </div>
 
-              {/* Load More */}
-              {filteredMedicines.length > 0 && (
-                <div className="mt-8 text-center">
-                  <Button variant="outline" size="lg">
-                    Load More Medicines
-                  </Button>
-                </div>
+                  {filteredMedicines.length === 0 && (
+                    <div className="text-center py-16">
+                      <p className="text-muted-foreground text-lg">No medicines found matching your search.</p>
+                    </div>
+                  )}
+
+                  <PaginationControls
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    onPageChange={setCurrentPage}
+                  />
+                </>
               )}
             </div>
           </div>
