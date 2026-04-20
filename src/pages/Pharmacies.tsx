@@ -31,6 +31,10 @@ import {
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import PharmacyMap from "@/components/pharmacies/PharmacyMap";
+import PaginationControls from "@/components/common/PaginationControls";
+import PharmacyCardSkeleton from "@/components/cards/PharmacyCardSkeleton";
+
+const ITEMS_PER_PAGE = 6;
 
 interface Pharmacy {
   id: string;
@@ -152,6 +156,19 @@ const Pharmacies = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState("distance");
   const [filterOpen, setFilterOpen] = useState<"all" | "open" | "closed">("all");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [loading, setLoading] = useState(true);
+
+  // Simulate initial loading
+  useEffect(() => {
+    const timer = setTimeout(() => setLoading(false), 700);
+    return () => clearTimeout(timer);
+  }, []);
+
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, sortBy, filterOpen]);
 
   const handleGetLocation = () => {
     setLocationLoading(true);
