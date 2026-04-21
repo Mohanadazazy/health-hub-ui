@@ -177,18 +177,32 @@ const Cart = () => {
               {/* Cart Items */}
               <div className="lg:col-span-2 space-y-4">
                 {/* Group by pharmacy */}
-                {Array.from(new Set(cartItems.map((item) => item.pharmacy))).map(
+                {pharmacies.map(
                   (pharmacy) => (
                     <div
                       key={pharmacy}
-                      className="bg-card rounded-2xl border border-border overflow-hidden"
+                      onClick={() => setSelectedPharmacy(pharmacy)}
+                      className={`bg-card rounded-2xl border-2 overflow-hidden cursor-pointer transition-all ${
+                        activePharmacy === pharmacy
+                          ? "border-primary shadow-card"
+                          : "border-border hover:border-primary/40"
+                      }`}
                     >
                       {/* Pharmacy Header */}
-                      <div className="bg-muted/50 px-6 py-3 border-b border-border">
+                      <div className={`px-6 py-3 border-b border-border transition-colors ${
+                        activePharmacy === pharmacy ? "bg-primary/10" : "bg-muted/50"
+                      }`}>
                         <div className="flex items-center justify-between">
-                          <span className="font-semibold text-foreground">
-                            {pharmacy}
-                          </span>
+                          <div className="flex items-center gap-2">
+                            <span className="font-semibold text-foreground">
+                              {pharmacy}
+                            </span>
+                            {activePharmacy === pharmacy && (
+                              <Badge className="bg-primary text-primary-foreground text-xs">
+                                Selected
+                              </Badge>
+                            )}
+                          </div>
                           <Badge variant="secondary" className="text-xs">
                             {cartItems.filter((i) => i.pharmacy === pharmacy).length} items
                           </Badge>
