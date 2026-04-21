@@ -19,6 +19,7 @@ import NotFound from "./pages/NotFound";
 import Navbar from "./components/layout/Navbar";
 import Footer from "./components/layout/Footer";
 import TopLoadingBar from "./components/common/TopLoadingBar";
+import RouteLoader from "./components/common/RouteLoader";
 
 const queryClient = new QueryClient();
 
@@ -30,6 +31,7 @@ const App = () => (
       <BrowserRouter>
         <AuthProvider>
           <TopLoadingBar />
+          <RouteLoader />
           <Routes>
             {/* Auth pages without navbar/footer */}
             <Route path="/auth" element={<Auth />} />
