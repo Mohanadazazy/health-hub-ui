@@ -72,8 +72,9 @@ const initialCartItems: CartItem[] = [
 
 const Cart = () => {
   const [cartItems, setCartItems] = useState<CartItem[]>(initialCartItems);
-  const [promoCode, setPromoCode] = useState("");
-  const [promoApplied, setPromoApplied] = useState(false);
+  const [promoCodes, setPromoCodes] = useState<Record<string, string>>({});
+  const [promoApplied, setPromoApplied] = useState<Record<string, boolean>>({});
+  const [selectedPharmacy, setSelectedPharmacy] = useState<string | null>(null);
 
   const updateQuantity = (id: string, delta: number) => {
     setCartItems((items) =>
@@ -89,24 +90,45 @@ const Cart = () => {
     setCartItems((items) => items.filter((item) => item.id !== id));
   };
 
-  const subtotal = cartItems.reduce(
-    (sum, item) => sum + item.price * item.quantity,
-    0
-  );
-  const savings = cartItems.reduce(
-    (sum, item) =>
-      sum + (item.originalPrice ? (item.originalPrice - item.price) * item.quantity : 0),
-    0
-  );
-  const deliveryFee = subtotal > 50 ? 0 : 4.99;
-  const promoDiscount = promoApplied ? subtotal * 0.1 : 0;
-  const total = subtotal + deliveryFee - promoDiscount;
+  const pharmacies = Array.from(new Set(cartItems.map((item) => item.pharmacy)));
 
-  const applyPromoCode = () => {
-    if (promoCode.toLowerCase() === "save10") {
-      setPromoApplied(true);
+  // Auto-select first pharmacy if none selected
+  if (pharmacies.length > 0 && (!selectedPharmacy || !pharmacies.includes(selectedPharmacy))) {
+    // use setTimeout to avoid setState during render
+    setTimeout(() => setSelectedPharmacy(pharmacies[0]), 0);
+  }
+
+  const getPharmacyTotals = (pharmacy: string) => {
+    const items = cartItems.filter((i) => i.pharmacy === pharmacy);
+    const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+    const savings = items.reduce(
+      (sum, item) =>
+        sum + (item.originalPrice ? (item.originalPrice - item.price) * item.quantity : 0),
+      0
+    );
+    const deliveryFee = subtotal > 50 ? 0 : 4.99;
+    const applied = promoApplied[pharmacy];
+    const promoDiscount = applied ? subtotal * 0.1 : 0;
+    const total = subtotal + deliveryFee - promoDiscount;
+    return { items, subtotal, savings, deliveryFee, promoDiscount, total, applied };
+  };
+
+  const applyPromoCode = (pharmacy: string) => {
+    const code = promoCodes[pharmacy] || "";
+    if (code.toLowerCase() === "save10") {
+      setPromoApplied((prev) => ({ ...prev, [pharmacy]: true }));
     }
   };
+
+  const handleCheckout = (pharmacy: string) => {
+    const { total } = getPharmacyTotals(pharmacy);
+    alert(`Checking out from ${pharmacy} - Total: $${total.toFixed(2)}`);
+  };
+
+  const activePharmacy = selectedPharmacy && pharmacies.includes(selectedPharmacy)
+    ? selectedPharmacy
+    : pharmacies[0];
+  const summaryData = activePharmacy ? getPharmacyTotals(activePharmacy) : null;
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
