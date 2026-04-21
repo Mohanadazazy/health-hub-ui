@@ -18,6 +18,7 @@ import Cart from "./pages/Cart";
 import NotFound from "./pages/NotFound";
 import Navbar from "./components/layout/Navbar";
 import Footer from "./components/layout/Footer";
+import TopLoadingBar from "./components/common/TopLoadingBar";
 
 const queryClient = new QueryClient();
 
@@ -28,6 +29,7 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <AuthProvider>
+          <TopLoadingBar />
           <Routes>
             {/* Auth pages without navbar/footer */}
             <Route path="/auth" element={<Auth />} />
