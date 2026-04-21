@@ -260,7 +260,7 @@ const Auth = () => {
           </form>
 
           <p className="text-center text-sm text-muted-foreground">
-            No password needed. We'll send you a secure link to sign in.
+            No password needed. We'll send you a secure 6-digit code to sign in.
           </p>
         </div>
       </div>
