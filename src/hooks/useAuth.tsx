@@ -8,6 +8,7 @@ interface AuthContextType {
   loading: boolean;
   onboardingCompleted: boolean | null;
   signInWithEmail: (email: string) => Promise<{ error: any }>;
+  verifyOtp: (email: string, token: string) => Promise<{ error: any }>;
   signInWithGoogle: () => Promise<{ error: any }>;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
