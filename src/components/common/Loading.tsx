@@ -1,4 +1,4 @@
-import { Loader2, Pill } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface LoadingProps {
@@ -15,14 +15,9 @@ const Loading = ({
   variant = "branded",
 }: LoadingProps) => {
   const content = (
-    <div className={cn("flex flex-col items-center justify-center gap-4", className)}>
+    <div className={cn("flex flex-col items-center justify-center gap-4 text-center", className)}>
       {variant === "branded" ? (
-        <div className="relative">
-          <div className="h-16 w-16 rounded-2xl gradient-primary flex items-center justify-center animate-pulse">
-            <Pill className="h-8 w-8 text-primary-foreground" />
-          </div>
-          <div className="absolute inset-0 h-16 w-16 rounded-2xl border-2 border-primary/30 border-t-primary animate-spin" />
-        </div>
+        <div className="h-16 w-16 rounded-2xl border-2 border-primary/30 border-t-primary animate-spin" />
       ) : (
         <Loader2 className="h-10 w-10 animate-spin text-primary" />
       )}
@@ -46,3 +41,4 @@ const Loading = ({
 };
 
 export default Loading;
+
