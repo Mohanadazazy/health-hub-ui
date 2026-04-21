@@ -98,8 +98,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   return (
     <AuthContext.Provider
-  return (
-    <AuthContext.Provider
       value={{
         user,
         session,
@@ -111,11 +109,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         signOut,
         refreshProfile,
       }}
-    >
-      {children}
-    </AuthContext.Provider>
-  );
-};
     >
       {children}
     </AuthContext.Provider>
