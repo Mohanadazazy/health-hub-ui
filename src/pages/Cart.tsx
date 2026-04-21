@@ -298,99 +298,117 @@ const Cart = () => {
               {/* Order Summary */}
               <div className="lg:col-span-1">
                 <div className="bg-card rounded-2xl border border-border p-6 sticky top-24 space-y-6">
-                  <h2 className="text-xl font-bold text-foreground">Order Summary</h2>
-
-                  {/* Promo Code */}
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-foreground">
-                      Promo Code
-                    </label>
-                    <div className="flex gap-2">
-                      <div className="relative flex-1">
-                        <Tag className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <Input
-                          placeholder="Enter code"
-                          value={promoCode}
-                          onChange={(e) => setPromoCode(e.target.value)}
-                          className="pl-10"
-                          disabled={promoApplied}
-                        />
-                      </div>
-                      <Button
-                        variant="outline"
-                        onClick={applyPromoCode}
-                        disabled={promoApplied || !promoCode}
-                      >
-                        {promoApplied ? "Applied!" : "Apply"}
-                      </Button>
-                    </div>
-                    {promoApplied && (
-                      <p className="text-sm text-success flex items-center gap-1">
-                        <Shield className="h-4 w-4" />
-                        10% discount applied!
+                  <div>
+                    <h2 className="text-xl font-bold text-foreground">Order Summary</h2>
+                    {activePharmacy && (
+                      <p className="text-sm text-muted-foreground mt-1">
+                        Checking out from <span className="font-semibold text-primary">{activePharmacy}</span>
                       </p>
                     )}
-                    <p className="text-xs text-muted-foreground">
-                      Try "SAVE10" for 10% off
-                    </p>
                   </div>
 
-                  <Separator />
-
-                  {/* Price Breakdown */}
-                  <div className="space-y-3">
-                    <div className="flex justify-between text-foreground">
-                      <span>Subtotal</span>
-                      <span>${subtotal.toFixed(2)}</span>
-                    </div>
-                    {savings > 0 && (
-                      <div className="flex justify-between text-success">
-                        <span>You Save</span>
-                        <span>-${savings.toFixed(2)}</span>
-                      </div>
-                    )}
-                    {promoApplied && (
-                      <div className="flex justify-between text-success">
-                        <span>Promo Discount</span>
-                        <span>-${promoDiscount.toFixed(2)}</span>
-                      </div>
-                    )}
-                    <div className="flex justify-between text-foreground">
-                      <span className="flex items-center gap-1">
-                        <Truck className="h-4 w-4" />
-                        Delivery
-                      </span>
-                      <span>
-                        {deliveryFee === 0 ? (
-                          <span className="text-success">FREE</span>
-                        ) : (
-                          `$${deliveryFee.toFixed(2)}`
+                  {summaryData && activePharmacy && (
+                    <>
+                      {/* Promo Code */}
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium text-foreground">
+                          Promo Code
+                        </label>
+                        <div className="flex gap-2">
+                          <div className="relative flex-1">
+                            <Tag className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                            <Input
+                              placeholder="Enter code"
+                              value={promoCodes[activePharmacy] || ""}
+                              onChange={(e) =>
+                                setPromoCodes((prev) => ({ ...prev, [activePharmacy]: e.target.value }))
+                              }
+                              className="pl-10"
+                              disabled={summaryData.applied}
+                            />
+                          </div>
+                          <Button
+                            variant="outline"
+                            onClick={() => applyPromoCode(activePharmacy)}
+                            disabled={summaryData.applied || !promoCodes[activePharmacy]}
+                          >
+                            {summaryData.applied ? "Applied!" : "Apply"}
+                          </Button>
+                        </div>
+                        {summaryData.applied && (
+                          <p className="text-sm text-success flex items-center gap-1">
+                            <Shield className="h-4 w-4" />
+                            10% discount applied!
+                          </p>
                         )}
-                      </span>
-                    </div>
-                    {deliveryFee > 0 && (
-                      <p className="text-xs text-muted-foreground">
-                        Add ${(50 - subtotal).toFixed(2)} more for free delivery
-                      </p>
-                    )}
-                  </div>
+                        <p className="text-xs text-muted-foreground">
+                          Try "SAVE10" for 10% off
+                        </p>
+                      </div>
 
-                  <Separator />
+                      <Separator />
 
-                  {/* Total */}
-                  <div className="flex justify-between items-center">
-                    <span className="text-lg font-bold text-foreground">Total</span>
-                    <span className="text-2xl font-bold text-primary">
-                      ${total.toFixed(2)}
-                    </span>
-                  </div>
+                      {/* Price Breakdown */}
+                      <div className="space-y-3">
+                        <div className="flex justify-between text-foreground">
+                          <span>Subtotal</span>
+                          <span>${summaryData.subtotal.toFixed(2)}</span>
+                        </div>
+                        {summaryData.savings > 0 && (
+                          <div className="flex justify-between text-success">
+                            <span>You Save</span>
+                            <span>-${summaryData.savings.toFixed(2)}</span>
+                          </div>
+                        )}
+                        {summaryData.applied && (
+                          <div className="flex justify-between text-success">
+                            <span>Promo Discount</span>
+                            <span>-${summaryData.promoDiscount.toFixed(2)}</span>
+                          </div>
+                        )}
+                        <div className="flex justify-between text-foreground">
+                          <span className="flex items-center gap-1">
+                            <Truck className="h-4 w-4" />
+                            Delivery
+                          </span>
+                          <span>
+                            {summaryData.deliveryFee === 0 ? (
+                              <span className="text-success">FREE</span>
+                            ) : (
+                              `$${summaryData.deliveryFee.toFixed(2)}`
+                            )}
+                          </span>
+                        </div>
+                        {summaryData.deliveryFee > 0 && (
+                          <p className="text-xs text-muted-foreground">
+                            Add ${(50 - summaryData.subtotal).toFixed(2)} more for free delivery
+                          </p>
+                        )}
+                      </div>
 
-                  {/* Checkout Button */}
-                  <Button className="w-full" size="lg">
-                    Proceed to Checkout
-                    <ChevronRight className="h-5 w-5 ml-1" />
-                  </Button>
+                      <Separator />
 
+                      {/* Total */}
+                      <div className="flex justify-between items-center">
+                        <span className="text-lg font-bold text-foreground">Total</span>
+                        <span className="text-2xl font-bold text-primary">
+                          ${summaryData.total.toFixed(2)}
+                        </span>
+                      </div>
+
+                      {/* Checkout Button */}
+                      <Button className="w-full" size="lg" onClick={() => handleCheckout(activePharmacy)}>
+                        Checkout from {activePharmacy}
+                        <ChevronRight className="h-5 w-5 ml-1" />
+                      </Button>
+
+                      {pharmacies.length > 1 && (
+                        <p className="text-xs text-center text-muted-foreground">
+                          Select another pharmacy on the left to checkout its cart separately
+                        </p>
+                      )}
+                    </>
+                  )}
                   {/* Trust Badges */}
                   <div className="grid grid-cols-2 gap-3 pt-2">
                     <div className="flex items-center gap-2 text-xs text-muted-foreground">
