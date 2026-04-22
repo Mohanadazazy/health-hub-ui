@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Navigate } from "react-router-dom";
+import { Navigate, Link } from "react-router-dom";
 import { Mail, Pill, Check, Loader2, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -261,6 +261,13 @@ const Auth = () => {
 
           <p className="text-center text-sm text-muted-foreground">
             No password needed. We'll send you a secure 6-digit code to sign in.
+          </p>
+
+          <p className="text-center text-sm text-muted-foreground">
+            Don't have an account?{" "}
+            <Link to="/signup" className="text-primary font-semibold hover:underline">
+              Sign up
+            </Link>
           </p>
         </div>
       </div>
