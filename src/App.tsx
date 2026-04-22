@@ -38,6 +38,7 @@ const App = () => (
             {/* Auth pages without navbar/footer */}
             <Route path="/auth" element={<Auth />} />
             <Route path="/signup" element={<Signup />} />
+            <Route path="/verify" element={<Verify />} />
             <Route path="/onboarding" element={<Onboarding />} />
             
             {/* Landing page with its own layout */}
