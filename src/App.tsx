@@ -7,6 +7,7 @@ import { AuthProvider } from "@/hooks/useAuth";
 import Landing from "./pages/Landing";
 import Auth from "./pages/Auth";
 import Signup from "./pages/Signup";
+import Verify from "./pages/Verify";
 import Onboarding from "./pages/Onboarding";
 import Search from "./pages/Search";
 import Pharmacies from "./pages/Pharmacies";
@@ -37,6 +38,7 @@ const App = () => (
             {/* Auth pages without navbar/footer */}
             <Route path="/auth" element={<Auth />} />
             <Route path="/signup" element={<Signup />} />
+            <Route path="/verify" element={<Verify />} />
             <Route path="/onboarding" element={<Onboarding />} />
             
             {/* Landing page with its own layout */}

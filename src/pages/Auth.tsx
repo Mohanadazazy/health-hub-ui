@@ -1,23 +1,19 @@
 import { useState } from "react";
-import { Navigate, Link } from "react-router-dom";
-import { Mail, Pill, Check, Loader2, ArrowLeft } from "lucide-react";
+import { Navigate, Link, useNavigate } from "react-router-dom";
+import { Mail, Pill, Check, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 
 const Auth = () => {
-  const { user, loading, onboardingCompleted, signInWithEmail, verifyOtp, signInWithGoogle } = useAuth();
+  const { user, loading, onboardingCompleted, signInWithEmail, signInWithGoogle } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [sending, setSending] = useState(false);
-  const [sent, setSent] = useState(false);
   const [emailError, setEmailError] = useState("");
-  const [otp, setOtp] = useState("");
-  const [verifying, setVerifying] = useState(false);
-  const [resending, setResending] = useState(false);
 
   if (loading) {
     return (
@@ -52,38 +48,7 @@ const Auth = () => {
     if (error) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
     } else {
-      setSent(true);
-      setOtp("");
-    }
-  };
-
-  const handleVerifyOtp = async (code?: string) => {
-    const token = code ?? otp;
-    if (token.length !== 6) return;
-
-    setVerifying(true);
-    const { error } = await verifyOtp(email, token);
-    setVerifying(false);
-
-    if (error) {
-      toast({
-        title: "Invalid code",
-        description: error.message || "The code is incorrect or expired.",
-        variant: "destructive",
-      });
-      setOtp("");
-    }
-  };
-
-  const handleResend = async () => {
-    setResending(true);
-    const { error } = await signInWithEmail(email);
-    setResending(false);
-    if (error) {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
-    } else {
-      toast({ title: "Code resent", description: `A new code was sent to ${email}.` });
-      setOtp("");
+      navigate("/verify", { state: { email, mode: "signin" } });
     }
   };
 
@@ -93,87 +58,6 @@ const Auth = () => {
       toast({ title: "Error", description: error.message, variant: "destructive" });
     }
   };
-
-  if (sent) {
-    return (
-      <div className="min-h-screen flex items-center justify-center p-6">
-        <div className="w-full max-w-md space-y-8">
-          <button
-            onClick={() => {
-              setSent(false);
-              setOtp("");
-            }}
-            className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Use a different email
-          </button>
-
-          <div className="text-center space-y-3">
-            <div className="mx-auto h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center">
-              <Mail className="h-8 w-8 text-primary" />
-            </div>
-            <h1 className="text-2xl font-bold text-foreground">Check your email</h1>
-            <p className="text-muted-foreground">
-              We sent a 6-digit code to{" "}
-              <span className="font-semibold text-foreground">{email}</span>.
-            </p>
-          </div>
-
-          <div className="space-y-4">
-            <div className="flex justify-center">
-              <InputOTP
-                maxLength={6}
-                value={otp}
-                onChange={(value) => {
-                  setOtp(value);
-                  if (value.length === 6) handleVerifyOtp(value);
-                }}
-                disabled={verifying}
-              >
-                <InputOTPGroup>
-                  <InputOTPSlot index={0} />
-                  <InputOTPSlot index={1} />
-                  <InputOTPSlot index={2} />
-                  <InputOTPSlot index={3} />
-                  <InputOTPSlot index={4} />
-                  <InputOTPSlot index={5} />
-                </InputOTPGroup>
-              </InputOTP>
-            </div>
-
-            <Button
-              onClick={() => handleVerifyOtp()}
-              variant="hero"
-              size="lg"
-              className="w-full"
-              disabled={verifying || otp.length !== 6}
-            >
-              {verifying ? (
-                <>
-                  <Loader2 className="h-5 w-5 animate-spin mr-2" />
-                  Verifying...
-                </>
-              ) : (
-                "Verify Code"
-              )}
-            </Button>
-
-            <p className="text-center text-sm text-muted-foreground">
-              Didn't get the code?{" "}
-              <button
-                onClick={handleResend}
-                disabled={resending}
-                className="text-primary font-semibold hover:underline disabled:opacity-50"
-              >
-                {resending ? "Sending..." : "Resend"}
-              </button>
-            </p>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen flex">
