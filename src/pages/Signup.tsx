@@ -1,20 +1,33 @@
 import { useState } from "react";
-import { Navigate, Link } from "react-router-dom";
-import { Mail, Pill, Check, Loader2, ArrowLeft } from "lucide-react";
+import { Navigate, useNavigate, Link } from "react-router-dom";
+import { Mail, Pill, Check, Loader2, User as UserIcon, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
-const Auth = () => {
-  const { user, loading, onboardingCompleted, signInWithEmail, verifyOtp, signInWithGoogle } = useAuth();
+const Signup = () => {
+  const {
+    user,
+    loading,
+    onboardingCompleted,
+    signInWithEmail,
+    verifyOtp,
+    signInWithGoogle,
+    refreshProfile,
+  } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
+
+  const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
+  const [errors, setErrors] = useState<{ name?: string; email?: string }>({});
+
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
-  const [emailError, setEmailError] = useState("");
   const [otp, setOtp] = useState("");
   const [verifying, setVerifying] = useState(false);
   const [resending, setResending] = useState(false);
@@ -32,18 +45,18 @@ const Auth = () => {
     return <Navigate to="/" replace />;
   }
 
-  const handleEmailSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setEmailError("");
+    const newErrors: { name?: string; email?: string } = {};
 
-    if (!email) {
-      setEmailError("Email is required");
-      return;
-    }
-    if (!/\S+@\S+\.\S+/.test(email)) {
-      setEmailError("Please enter a valid email");
-      return;
-    }
+    if (!fullName.trim()) newErrors.name = "User name is required";
+    else if (fullName.trim().length < 2) newErrors.name = "Name must be at least 2 characters";
+
+    if (!email) newErrors.email = "Email is required";
+    else if (!/\S+@\S+\.\S+/.test(email)) newErrors.email = "Please enter a valid email";
+
+    setErrors(newErrors);
+    if (Object.keys(newErrors).length > 0) return;
 
     setSending(true);
     const { error } = await signInWithEmail(email);
@@ -51,10 +64,13 @@ const Auth = () => {
 
     if (error) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
-    } else {
-      setSent(true);
-      setOtp("");
+      return;
     }
+
+    // Persist the chosen name so we can save it after OTP verification
+    sessionStorage.setItem("signup_full_name", fullName.trim());
+    setSent(true);
+    setOtp("");
   };
 
   const handleVerifyOtp = async (code?: string) => {
@@ -63,16 +79,33 @@ const Auth = () => {
 
     setVerifying(true);
     const { error } = await verifyOtp(email, token);
-    setVerifying(false);
 
     if (error) {
+      setVerifying(false);
       toast({
         title: "Invalid code",
         description: error.message || "The code is incorrect or expired.",
         variant: "destructive",
       });
       setOtp("");
+      return;
     }
+
+    // Save the full name onto the user's profile
+    const savedName = sessionStorage.getItem("signup_full_name") || fullName.trim();
+    const { data: { user: authUser } } = await supabase.auth.getUser();
+    if (authUser && savedName) {
+      await supabase
+        .from("profiles")
+        .update({ full_name: savedName })
+        .eq("user_id", authUser.id);
+      sessionStorage.removeItem("signup_full_name");
+      await refreshProfile();
+    }
+
+    setVerifying(false);
+    toast({ title: "Welcome!", description: "Your account has been created." });
+    navigate("/onboarding", { replace: true });
   };
 
   const handleResend = async () => {
@@ -106,7 +139,7 @@ const Auth = () => {
             className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
           >
             <ArrowLeft className="h-4 w-4" />
-            Use a different email
+            Edit details
           </button>
 
           <div className="text-center space-y-3">
@@ -152,10 +185,10 @@ const Auth = () => {
               {verifying ? (
                 <>
                   <Loader2 className="h-5 w-5 animate-spin mr-2" />
-                  Verifying...
+                  Creating your account...
                 </>
               ) : (
-                "Verify Code"
+                "Verify & Create Account"
               )}
             </Button>
 
@@ -190,13 +223,13 @@ const Auth = () => {
 
           {/* Header */}
           <div>
-            <h1 className="text-3xl font-bold text-foreground">Welcome</h1>
+            <h1 className="text-3xl font-bold text-foreground">Create your account</h1>
             <p className="text-muted-foreground mt-2">
-              Sign in or create an account to continue
+              Sign up with your name and email to get started
             </p>
           </div>
 
-          {/* Google Sign In */}
+          {/* Google Sign Up */}
           <Button
             variant="outline"
             className="w-full h-12"
@@ -218,13 +251,32 @@ const Auth = () => {
             </div>
             <div className="relative flex justify-center text-sm">
               <span className="bg-background px-4 text-muted-foreground">
-                Or continue with email
+                Or sign up with email
               </span>
             </div>
           </div>
 
-          {/* Email Magic Link */}
-          <form onSubmit={handleEmailSubmit} className="space-y-4">
+          {/* Signup Form */}
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="fullName">User Name</Label>
+              <div className="relative">
+                <UserIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                <Input
+                  id="fullName"
+                  type="text"
+                  placeholder="John Doe"
+                  className={`pl-10 h-12 ${errors.name ? "border-destructive" : ""}`}
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  maxLength={100}
+                />
+              </div>
+              {errors.name && (
+                <p className="text-sm text-destructive">{errors.name}</p>
+              )}
+            </div>
+
             <div className="space-y-2">
               <Label htmlFor="email">Email Address</Label>
               <div className="relative">
@@ -233,13 +285,14 @@ const Auth = () => {
                   id="email"
                   type="email"
                   placeholder="you@example.com"
-                  className={`pl-10 h-12 ${emailError ? "border-destructive" : ""}`}
+                  className={`pl-10 h-12 ${errors.email ? "border-destructive" : ""}`}
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
+                  maxLength={255}
                 />
               </div>
-              {emailError && (
-                <p className="text-sm text-destructive">{emailError}</p>
+              {errors.email && (
+                <p className="text-sm text-destructive">{errors.email}</p>
               )}
             </div>
 
@@ -260,13 +313,9 @@ const Auth = () => {
           </form>
 
           <p className="text-center text-sm text-muted-foreground">
-            No password needed. We'll send you a secure 6-digit code to sign in.
-          </p>
-
-          <p className="text-center text-sm text-muted-foreground">
-            Don't have an account?{" "}
-            <Link to="/signup" className="text-primary font-semibold hover:underline">
-              Sign up
+            Already have an account?{" "}
+            <Link to="/auth" className="text-primary font-semibold hover:underline">
+              Sign in
             </Link>
           </p>
         </div>
@@ -281,17 +330,17 @@ const Auth = () => {
             </div>
           </div>
           <h2 className="text-3xl font-bold mb-4">
-            Access Medicines from Trusted Pharmacies
+            Join MediConnect Today
           </h2>
           <p className="text-primary-foreground/80 mb-8">
-            Join thousands of users who trust MediConnect for their healthcare needs.
+            Create your account to start ordering medicines from trusted pharmacies near you.
           </p>
           <div className="space-y-4 text-left">
             {[
+              "Quick & passwordless signup",
               "Access 500+ verified pharmacies",
               "Compare prices instantly",
               "Fast doorstep delivery",
-              "Passwordless, secure sign-in",
             ].map((feature) => (
               <div key={feature} className="flex items-center gap-3">
                 <div className="h-6 w-6 rounded-full bg-primary-foreground/20 flex items-center justify-center">
@@ -307,4 +356,4 @@ const Auth = () => {
   );
 };
 
-export default Auth;
+export default Signup;
