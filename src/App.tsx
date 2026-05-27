@@ -17,6 +17,7 @@ import Profile from "./pages/Profile";
 import SellMedicine from "./pages/SellMedicine";
 import Prescription from "./pages/Prescription";
 import Cart from "./pages/Cart";
+import Marketplace from "./pages/Marketplace";
 import NotFound from "./pages/NotFound";
 import Navbar from "./components/layout/Navbar";
 import Footer from "./components/layout/Footer";
