@@ -14,6 +14,7 @@ const Navbar = () => {
   const navLinks = [
     { href: "/search", label: "Find Medicines" },
     { href: "/pharmacies", label: "Pharmacies" },
+    { href: "/marketplace", label: "Marketplace" },
     { href: "/sell", label: "Sell Medicine" },
     { href: "/prescription", label: "Upload Prescription" },
   ];
