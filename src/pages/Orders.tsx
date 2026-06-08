@@ -29,6 +29,80 @@ export interface Order {
 
 const STORAGE_KEY = "mediconnect_orders";
 
+const DUMMY_ORDERS: Order[] = [
+  {
+    id: "ORD-481209",
+    pharmacy: "HealthFirst Pharmacy",
+    items: [
+      {
+        id: "1",
+        name: "Paracetamol 500mg Tablets",
+        image: "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=200&auto=format",
+        price: 8.99,
+        quantity: 2,
+      },
+      {
+        id: "3",
+        name: "Omega-3 Fish Oil 1000mg",
+        image: "https://images.unsplash.com/photo-1505751172876-fa1923c5c528?w=200&auto=format",
+        price: 22.0,
+        quantity: 1,
+      },
+    ],
+    subtotal: 39.98,
+    deliveryFee: 4.99,
+    promoDiscount: 0,
+    total: 44.97,
+    status: "Delivered",
+    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 6).toISOString(),
+  },
+  {
+    id: "ORD-572341",
+    pharmacy: "MediCare Plus",
+    items: [
+      {
+        id: "2",
+        name: "Vitamin D3 5000 IU Capsules",
+        image: "https://images.unsplash.com/photo-1556228578-8c89e6adf883?w=200&auto=format",
+        price: 15.49,
+        quantity: 2,
+      },
+    ],
+    subtotal: 30.98,
+    deliveryFee: 4.99,
+    promoDiscount: 3.1,
+    total: 32.87,
+    status: "In Transit",
+    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 2).toISOString(),
+  },
+  {
+    id: "ORD-639874",
+    pharmacy: "QuickMeds Pharmacy",
+    items: [
+      {
+        id: "4",
+        name: "Multivitamin Complex Daily",
+        image: "https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=200&auto=format",
+        price: 18.99,
+        quantity: 3,
+      },
+      {
+        id: "5",
+        name: "Probiotic Complex",
+        image: "https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=200&auto=format",
+        price: 24.5,
+        quantity: 1,
+      },
+    ],
+    subtotal: 81.47,
+    deliveryFee: 0,
+    promoDiscount: 0,
+    total: 81.47,
+    status: "Processing",
+    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 5).toISOString(),
+  },
+];
+
 export const loadOrders = (): Order[] => {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
@@ -54,7 +128,12 @@ const Orders = () => {
   const [orders, setOrders] = useState<Order[]>([]);
 
   useEffect(() => {
-    setOrders(loadOrders());
+    let existing = loadOrders();
+    if (existing.length === 0) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(DUMMY_ORDERS));
+      existing = DUMMY_ORDERS;
+    }
+    setOrders(existing);
   }, []);
 
   return (
