@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Menu, X, Search, ShoppingCart, User, Pill, LogOut } from "lucide-react";
+import { Menu, X, Search, ShoppingCart, User, Pill, LogOut, Package } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/hooks/useAuth";
@@ -63,6 +63,11 @@ const Navbar = () => {
 
           {/* Actions */}
           <div className="flex items-center gap-2">
+            <Link to="/orders" className="hidden sm:block">
+              <Button variant="ghost" size="icon" title="My Orders">
+                <Package className="h-5 w-5" />
+              </Button>
+            </Link>
             <Link to="/cart" className="hidden sm:block">
               <Button variant="ghost" size="icon" className="relative">
                 <ShoppingCart className="h-5 w-5" />

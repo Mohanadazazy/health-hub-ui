@@ -17,6 +17,7 @@ import Profile from "./pages/Profile";
 import SellMedicine from "./pages/SellMedicine";
 import Prescription from "./pages/Prescription";
 import Cart from "./pages/Cart";
+import Orders from "./pages/Orders";
 import Marketplace from "./pages/Marketplace";
 import NotFound from "./pages/NotFound";
 import Navbar from "./components/layout/Navbar";
@@ -60,6 +61,7 @@ const App = () => (
             <Route path="/sell" element={<SellMedicine />} />
             <Route path="/prescription" element={<Prescription />} />
             <Route path="/cart" element={<Cart />} />
+            <Route path="/orders" element={<Orders />} />
             <Route path="/marketplace" element={<Marketplace />} />
             
             <Route path="*" element={<NotFound />} />

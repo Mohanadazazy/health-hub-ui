@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   Minus,
   Plus,
@@ -17,6 +17,8 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
+import { saveOrder } from "@/pages/Orders";
+import { toast } from "sonner";
 
 interface CartItem {
   id: string;
@@ -71,6 +73,7 @@ const initialCartItems: CartItem[] = [
 ];
 
 const Cart = () => {
+  const navigate = useNavigate();
   const [cartItems, setCartItems] = useState<CartItem[]>(initialCartItems);
   const [promoCodes, setPromoCodes] = useState<Record<string, string>>({});
   const [promoApplied, setPromoApplied] = useState<Record<string, boolean>>({});
@@ -121,8 +124,27 @@ const Cart = () => {
   };
 
   const handleCheckout = (pharmacy: string) => {
-    const { total } = getPharmacyTotals(pharmacy);
-    alert(`Checking out from ${pharmacy} - Total: $${total.toFixed(2)}`);
+    const { items, subtotal, deliveryFee, promoDiscount, total } = getPharmacyTotals(pharmacy);
+    saveOrder({
+      id: `ORD-${Date.now().toString().slice(-6)}`,
+      pharmacy,
+      items: items.map((i) => ({
+        id: i.id,
+        name: i.name,
+        image: i.image,
+        price: i.price,
+        quantity: i.quantity,
+      })),
+      subtotal,
+      deliveryFee,
+      promoDiscount,
+      total,
+      status: "Processing",
+      createdAt: new Date().toISOString(),
+    });
+    setCartItems((items) => items.filter((i) => i.pharmacy !== pharmacy));
+    toast.success(`Order placed with ${pharmacy}!`);
+    navigate("/orders");
   };
 
   const activePharmacy = selectedPharmacy && pharmacies.includes(selectedPharmacy)
