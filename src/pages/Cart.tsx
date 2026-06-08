@@ -73,6 +73,7 @@ const initialCartItems: CartItem[] = [
 ];
 
 const Cart = () => {
+  const navigate = useNavigate();
   const [cartItems, setCartItems] = useState<CartItem[]>(initialCartItems);
   const [promoCodes, setPromoCodes] = useState<Record<string, string>>({});
   const [promoApplied, setPromoApplied] = useState<Record<string, boolean>>({});
